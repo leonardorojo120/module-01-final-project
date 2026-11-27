@@ -1,3 +1,4 @@
+import prompt
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes, CommandHandler
 
@@ -21,16 +22,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 'command': 'button text'
 
     })
-async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def randomm(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt_text = load_prompt('random')
     chat_gpt.set_prompt(prompt_text)
     response = await chat_gpt.send_message_list()
     await send_image(update, context, 'random')
     await send_text(update, context, response)
+async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await send_image(update, context, name='random')
+    text = load_message('random')
+    await send_text(update, context, text)
+
+    prompt = load_prompt('random')
+
+    chat_gpt.set_prompt(prompt)
+    answer = await chat_gpt.send_question(prompt, "Дай факт")
+    await send_text(update, context, answer)
 
 
-
-chat_gpt = ChatGptService('ChatGPT TOKEN')
+chat_gpt = ChatGptService(credentials.ChatGPT_TOKEN)
 app = ApplicationBuilder().token(credentials.TG_TOKEN).build()
 
 # Зареєструвати обробник команди можна так:
