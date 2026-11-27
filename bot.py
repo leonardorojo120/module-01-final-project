@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes,
 import credentials
 from gpt import ChatGptService
 from util import (load_message, send_text, send_image, show_main_menu,
-                  default_callback_handler, load_prompt)
+                  default_callback_handler, load_prompt, send_text_buttons)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -35,10 +35,19 @@ async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     prompt = load_prompt('random')
 
-    chat_gpt.set_prompt(prompt)
+    #chat_gpt.set_prompt(prompt)
     answer = await chat_gpt.send_question(prompt, "Дай факт")
-    await send_text(update, context, answer)
+    #await send_text(update, context, answer)
+    await send_text_buttons(update, context, answer, {"random_end": "Закінчити",
+                                                      "random_more": "Хочу ще факт"})
 
+async def random_buttons_query_handler(update: Update, context: CallbackQueryHandler):
+    if update.callback_query:
+        return
+    if update.callback_query.data == "random_end":
+        await start(update, context)
+    elif update.callback_query.data == "random_more":
+        await random(update, context)
 
 chat_gpt = ChatGptService(credentials.ChatGPT_TOKEN)
 app = ApplicationBuilder().token(credentials.TG_TOKEN).build()
@@ -49,6 +58,6 @@ app.add_handler(CommandHandler('start', start))
 
 app.add_handler(CommandHandler('random', random))
 # Зареєструвати обробник колбеку можна так:
-# app.add_handler(CallbackQueryHandler(app_button, pattern='^app_.*'))
-app.add_handler(CallbackQueryHandler(default_callback_handler))
+app.add_handler(CallbackQueryHandler(random_buttons_query_handler, pattern='^app_.*'))
+#app.add_handler(CallbackQueryHandler(default_callback_handler))
 app.run_polling()

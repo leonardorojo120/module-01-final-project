@@ -16,7 +16,7 @@ class ChatGptService:
 
     async def send_message_list(self) -> str:
         completion = self.client.chat.completions.create(
-            model="gpt-5-nano",  # gpt-4o,  gpt-4-turbo,    gpt-3.5-turbo,  GPT-4o mini
+            model="gpt-5.6-luna",  # gpt-4o,  gpt-4-turbo,    gpt-3.5-turbo,  GPT-4o mini
             messages=self.message_list,
             max_completion_tokens=3000
         )
