@@ -5,10 +5,12 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, ContextTypes,
 import credentials
 from gpt import ChatGptService
 from util import (load_message, send_text, send_image, show_main_menu,
-                  default_callback_handler, load_prompt, send_text_buttons)
+                  default_callback_handler, load_prompt, send_text_buttons, Dialog)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    conversations[update.callback_query.from_user.id] = "DEFAULT"
     text = load_message('main')
     await send_image(update, context, 'main')
     await send_text(update, context, text)
@@ -22,13 +24,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 'command': 'button text'
 
     })
-async def randomm(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    prompt_text = load_prompt('random')
-    chat_gpt.set_prompt(prompt_text)
-    response = await chat_gpt.send_message_list()
-    await send_image(update, context, 'random')
-    await send_text(update, context, response)
+
 async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    conversations[update.message.chat.id] = "RANDOM"
+
+
+
     await send_image(update, context, name='random')
     text = load_message('random')
     await send_text(update, context, text)
@@ -44,14 +45,18 @@ async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def random_buttons_query_handler(update: Update, context: CallbackQueryHandler):
     if update.callback_query:
         return
+    elif conversations[update.callback_query.from_user.id] != "RANDOM":
+        return
     if update.callback_query.data == "random_end":
         await start(update, context)
+        conversations[update.callback_query.from_user.id] = "DEFAULT"
     elif update.callback_query.data == "random_more":
         await random(update, context)
 
 chat_gpt = ChatGptService(credentials.ChatGPT_TOKEN)
 app = ApplicationBuilder().token(credentials.TG_TOKEN).build()
 
+conversations = {}
 # Зареєструвати обробник команди можна так:
 # app.add_handler(CommandHandler('command', handler_func))
 app.add_handler(CommandHandler('start', start))
